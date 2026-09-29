@@ -28,7 +28,8 @@ body.garble-text-on.garble-text-scribble * {
 
 body.garble-text-on.garble-text-blur,
 body.garble-text-on.garble-text-blur * {
-	color: transparent !important;
+	/* -webkit-text-fill-color keeps SVG icons visible, unlike `color: transparent`. */
+	-webkit-text-fill-color: transparent !important;
 	text-shadow: 0 0 var(--garble-text-blur) var(--text-normal) !important;
 	transition: all var(--garble-text-transition);
 }
@@ -39,8 +40,7 @@ body.garble-text-on.garble-text-blur-images :is(img, video, canvas) {
 }
 
 /*
-	Reveal on hover. These rules come last so that they win over the rules above,
-	which have the same specificity.
+	Reveal on hover.
 */
 
 body.garble-text-on.garble-text-reveal-on-hover.garble-text-scribble *:hover {
@@ -49,7 +49,7 @@ body.garble-text-on.garble-text-reveal-on-hover.garble-text-scribble *:hover {
 }
 
 body.garble-text-on.garble-text-reveal-on-hover.garble-text-blur *:hover {
-	color: unset !important;
+	-webkit-text-fill-color: unset !important;
 	text-shadow: none !important;
 }
 
