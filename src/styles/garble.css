@@ -1,0 +1,59 @@
+/*
+	Garble Text styles.
+
+	These rules are applied when the plugin toggles garbling on. The plugin adds
+	the following classes to the <body> element of every open Obsidian window:
+
+	  garble-text-on               garbling is active
+	  garble-text-scribble         render text with the bundled scribble font
+	  garble-text-blur             blur text (works for every script, e.g. CJK)
+	  garble-text-blur-images      blur images and videos
+	  garble-text-reveal-on-hover  un-garble whatever the pointer is over
+
+	CSS part originally developed by Matthias C. Hormann (aka Moonbase59) 2021-08-27.
+*/
+
+body.garble-text-on {
+	--garble-text-transition: 0.3s;
+	--garble-text-blur: 0.35em;
+	--garble-text-image-blur: 10px;
+}
+
+body.garble-text-on.garble-text-scribble,
+body.garble-text-on.garble-text-scribble * {
+	font-family: 'Redacted Script' !important;
+	line-height: 1.45em !important;
+	transition: all var(--garble-text-transition);
+}
+
+body.garble-text-on.garble-text-blur,
+body.garble-text-on.garble-text-blur * {
+	color: transparent !important;
+	text-shadow: 0 0 var(--garble-text-blur) var(--text-normal) !important;
+	transition: all var(--garble-text-transition);
+}
+
+body.garble-text-on.garble-text-blur-images :is(img, video, canvas) {
+	filter: blur(var(--garble-text-image-blur)) !important;
+	transition: all var(--garble-text-transition);
+}
+
+/*
+	Reveal on hover. These rules come last so that they win over the rules above,
+	which have the same specificity.
+*/
+
+body.garble-text-on.garble-text-reveal-on-hover.garble-text-scribble *:hover {
+	font-family: unset !important;
+	line-height: unset !important;
+}
+
+body.garble-text-on.garble-text-reveal-on-hover.garble-text-blur *:hover {
+	color: unset !important;
+	text-shadow: none !important;
+}
+
+body.garble-text-on.garble-text-reveal-on-hover.garble-text-blur-images
+	:is(img, video, canvas):hover {
+	filter: unset !important;
+}
