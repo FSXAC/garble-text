@@ -7,16 +7,25 @@ export enum GarbleStyle {
 	ScribbleAndBlur = 'scribble-and-blur',
 }
 
+export enum RevealOnHover {
+	Off = 'off',
+	Word = 'word',
+	Sentence = 'sentence',
+	Paragraph = 'paragraph',
+}
+
 export interface GarbleTextSettings {
 	garbleStyle: GarbleStyle;
+	contentOnly: boolean;
 	blurImages: boolean;
-	revealOnHover: boolean;
+	revealOnHover: RevealOnHover;
 }
 
 export const DEFAULT_SETTINGS: GarbleTextSettings = {
 	garbleStyle: GarbleStyle.Scribble,
+	contentOnly: true,
 	blurImages: true,
-	revealOnHover: true,
+	revealOnHover: RevealOnHover.Word,
 };
 
 export class GarbleTextSettingTab extends PluginSettingTab {
@@ -52,6 +61,20 @@ export class GarbleTextSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName('Only garble note content')
+			.setDesc(
+				'Only garble the body of notes, not the rest of the interface such as file names, tabs, note titles and properties.',
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.contentOnly)
+					.onChange(async (value) => {
+						this.plugin.settings.contentOnly = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
 			.setName('Blur images')
 			.setDesc('Blur images and videos while text is garbled.')
 			.addToggle((toggle) =>
@@ -65,12 +88,20 @@ export class GarbleTextSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Reveal on hover')
-			.setDesc('Temporarily un-garble whatever the pointer is over.')
-			.addToggle((toggle) =>
-				toggle
+			.setDesc(
+				'Temporarily un-garble the text under the pointer. Outside of notes, the whole hovered element is revealed.',
+			)
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOptions({
+						[RevealOnHover.Off]: 'Off',
+						[RevealOnHover.Word]: 'Word',
+						[RevealOnHover.Sentence]: 'Sentence',
+						[RevealOnHover.Paragraph]: 'Paragraph',
+					})
 					.setValue(this.plugin.settings.revealOnHover)
 					.onChange(async (value) => {
-						this.plugin.settings.revealOnHover = value;
+						this.plugin.settings.revealOnHover = value as RevealOnHover;
 						await this.plugin.saveSettings();
 					}),
 			);

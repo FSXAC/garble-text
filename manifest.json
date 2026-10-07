@@ -1,6 +1,6 @@
 {
-	"id": "garble-text",
-	"name": "Garble Text",
+	"id": "mh-garble-text",
+	"name": "Muchen's Garble Text",
 	"version": "2.0.0",
 	"minAppVersion": "1.0.0",
 	"description": "Garbles all text in the app into scribbles and blurs images, so you can take screenshots without exposing sensitive data.",

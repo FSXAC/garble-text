@@ -4,11 +4,16 @@
 	These rules are applied when the plugin toggles garbling on. The plugin adds
 	the following classes to the <body> element of every open Obsidian window:
 
-	  garble-text-on               garbling is active
-	  garble-text-scribble         render text with the bundled scribble font
-	  garble-text-blur             blur text (works for every script, e.g. CJK)
-	  garble-text-blur-images      blur images and videos
-	  garble-text-reveal-on-hover  un-garble whatever the pointer is over
+	  garble-text-on                garbling is active
+	  garble-text-scribble          render text with the bundled scribble font
+	  garble-text-blur              blur text (works for every script, e.g. CJK)
+	  garble-text-blur-images       blur images and videos
+	  garble-text-content-only      only garble the body of notes, not the UI
+	  garble-text-reveal-hover      reveal on hover is on (any granularity)
+	  garble-text-reveal-paragraph  reveal whole hovered elements in notes too
+
+	Word and sentence reveal can't be done in CSS alone: the plugin wraps the
+	hovered word or sentence in a .garble-text-revealed element.
 
 	CSS part originally developed by Matthias C. Hormann (aka Moonbase59) 2021-08-27.
 */
@@ -17,43 +22,80 @@ body.garble-text-on {
 	--garble-text-transition: 0.3s;
 	--garble-text-blur: 0.35em;
 	--garble-text-image-blur: 10px;
-}
 
-body.garble-text-on.garble-text-scribble,
-body.garble-text-on.garble-text-scribble * {
-	font-family: 'Redacted Script' !important;
-	line-height: 1.45em !important;
-	transition: all var(--garble-text-transition);
-}
+	/* What may be garbled: the whole app, or only the body of notes. */
+	&:not(.garble-text-content-only) *,
+	&.garble-text-content-only
+		:is(
+			.markdown-source-view .cm-content,
+			.markdown-preview-sizer > div:not(.mod-header, .mod-footer)
+		),
+	&.garble-text-content-only
+		:is(
+			.markdown-source-view .cm-content,
+			.markdown-preview-sizer > div:not(.mod-header, .mod-footer)
+		)
+		* {
+		transition: all var(--garble-text-transition);
 
-body.garble-text-on.garble-text-blur,
-body.garble-text-on.garble-text-blur * {
-	/* -webkit-text-fill-color keeps SVG icons visible, unlike `color: transparent`. */
-	-webkit-text-fill-color: transparent !important;
-	text-shadow: 0 0 var(--garble-text-blur) var(--text-normal) !important;
-	transition: all var(--garble-text-transition);
-}
+		/*
+			...minus what is revealed on hover. Hovered things are not garbled in
+			the first place, so they keep whatever Obsidian and the theme give them;
+			overriding them back with `unset` or `revert-layer` does not work, as
+			fonts are mostly inherited from a parent that is garbled too.
 
-body.garble-text-on.garble-text-blur-images :is(img, video, canvas) {
-	filter: blur(var(--garble-text-image-blur)) !important;
-	transition: all var(--garble-text-transition);
-}
+			Revealing an element means leaving all of its ancestors (everything
+			matching :hover) un-garbled too, or it would inherit the garbling right
+			back. That only reveals the ancestors' own text, not their children.
+			The innermost hovered element, e.g. an editor line or a paragraph, is
+			revealed along with everything inside it.
 
-/*
-	Reveal on hover.
-*/
+			Outside of note bodies (i.e. the UI, unless garble-text-content-only),
+			hovered elements are always revealed this way, whatever the granularity.
+		*/
+		&:not(
+				.garble-text-reveal-paragraph :is(:hover, :hover:not(:has(:hover)) *),
+				.garble-text-reveal-hover
+					:is(:hover, :hover:not(:has(:hover)) *):not(
+						.markdown-source-view .cm-content,
+						.markdown-source-view .cm-content *,
+						.markdown-preview-sizer > div:not(.mod-header, .mod-footer),
+						.markdown-preview-sizer > div:not(.mod-header, .mod-footer) *
+					),
+				.garble-text-reveal-hover :is(img, video, canvas):hover,
+				.garble-text-revealed,
+				.garble-text-revealed *
+			) {
+			&:is(.garble-text-scribble *) {
+				font-family: 'Redacted Script' !important;
+			}
 
-body.garble-text-on.garble-text-reveal-on-hover.garble-text-scribble *:hover {
-	font-family: unset !important;
-	line-height: unset !important;
-}
+			&:is(.garble-text-blur *) {
+				/* -webkit-text-fill-color keeps SVG icons visible, unlike `color: transparent`. */
+				-webkit-text-fill-color: transparent !important;
+				text-shadow: 0 0 var(--garble-text-blur) var(--text-normal) !important;
+			}
 
-body.garble-text-on.garble-text-reveal-on-hover.garble-text-blur *:hover {
-	-webkit-text-fill-color: unset !important;
-	text-shadow: none !important;
-}
+			&:is(.garble-text-blur-images *):is(img, video, canvas) {
+				filter: blur(var(--garble-text-image-blur)) !important;
+			}
+		}
+	}
 
-body.garble-text-on.garble-text-reveal-on-hover.garble-text-blur-images
-	:is(img, video, canvas):hover {
-	filter: unset !important;
+	/*
+		A revealed word or sentence sits inside a garbled element, so it would
+		inherit the garbling: give it the fonts notes normally use instead.
+	*/
+	& :is(.garble-text-revealed, .garble-text-revealed *) {
+		font-family: var(--font-text) !important;
+		-webkit-text-fill-color: currentColor !important;
+		text-shadow: none !important;
+	}
+
+	&
+		:is(code, pre, .cm-inline-code, .HyperMD-codeblock)
+		:is(.garble-text-revealed, .garble-text-revealed *),
+	& .garble-text-revealed :is(code, code *, .cm-inline-code, .cm-inline-code *) {
+		font-family: var(--font-monospace) !important;
+	}
 }
